@@ -153,6 +153,7 @@ class _GameScreenState extends State<GameScreen> {
   List<int> selectedCards = [];
 
   bool isBusy = false;
+  int score = 0;
 
   @override
   void initState() {
@@ -215,9 +216,13 @@ class _GameScreenState extends State<GameScreen> {
       int second = selectedCards[1];
 
       if (cardValues[first] == cardValues[second]) {
-        matchedCards[first] = true;
-        matchedCards[second] = true;
-      } else {
+  matchedCards[first] = true;
+  matchedCards[second] = true;
+
+  score += 10;
+
+  checkWin();
+} else {
         await Future.delayed(
           const Duration(seconds: 1),
         );
@@ -225,6 +230,7 @@ class _GameScreenState extends State<GameScreen> {
         setState(() {
           cardFlipped[first] = false;
           cardFlipped[second] = false;
+          score -= 2;
         });
       }
 
@@ -232,7 +238,51 @@ class _GameScreenState extends State<GameScreen> {
       isBusy = false;
     }
   }
+void checkWin() {
+  bool hasWon =
+      matchedCards.every((matched) => matched);
 
+  if (hasWon) {
+    showDialog(
+      context: context,
+      barrierDismissible: false,
+      builder: (context) {
+        return AlertDialog(
+          title: const Text('🎉 Congratulations!'),
+          content: Text(
+            'You completed the game!\n\nScore: $score',
+          ),
+          actions: [
+            TextButton(
+              onPressed: () {
+                Navigator.pop(context);
+
+                setState(() {
+                  generateCards();
+
+                  cardFlipped = List.generate(
+                    widget.gridCount,
+                    (index) => false,
+                  );
+
+                  matchedCards = List.generate(
+                    widget.gridCount,
+                    (index) => false,
+                  );
+
+                  selectedCards.clear();
+
+                  score = 0;
+                });
+              },
+              child: const Text('Play Again'),
+            ),
+          ],
+        );
+      },
+    );
+  }
+}
   @override
   Widget build(BuildContext context) {
     int crossAxisCount = 2;
@@ -249,7 +299,9 @@ class _GameScreenState extends State<GameScreen> {
 
     return Scaffold(
       appBar: AppBar(
-        title: Text('Difficulty: ${widget.difficulty}'),
+        title: Text(
+  'Score: $score | ${widget.difficulty}',
+),
         centerTitle: true,
       ),
       body: Padding(
