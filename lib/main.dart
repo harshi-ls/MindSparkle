@@ -148,6 +148,11 @@ class GameScreen extends StatefulWidget {
 class _GameScreenState extends State<GameScreen> {
   List<String> cardValues = [];
   List<bool> cardFlipped = [];
+  List<bool> matchedCards = [];
+
+  List<int> selectedCards = [];
+
+  bool isBusy = false;
 
   @override
   void initState() {
@@ -184,13 +189,48 @@ class _GameScreenState extends State<GameScreen> {
 
     cardValues.shuffle();
 
-    cardFlipped = List.generate(widget.gridCount, (index) => false);
+    cardFlipped =
+        List.generate(widget.gridCount, (index) => false);
+
+    matchedCards =
+        List.generate(widget.gridCount, (index) => false);
   }
 
-  void flipCard(int index) {
+  void flipCard(int index) async {
+    if (isBusy ||
+        cardFlipped[index] ||
+        matchedCards[index]) {
+      return;
+    }
+
     setState(() {
-      cardFlipped[index] = !cardFlipped[index];
+      cardFlipped[index] = true;
+      selectedCards.add(index);
     });
+
+    if (selectedCards.length == 2) {
+      isBusy = true;
+
+      int first = selectedCards[0];
+      int second = selectedCards[1];
+
+      if (cardValues[first] == cardValues[second]) {
+        matchedCards[first] = true;
+        matchedCards[second] = true;
+      } else {
+        await Future.delayed(
+          const Duration(seconds: 1),
+        );
+
+        setState(() {
+          cardFlipped[first] = false;
+          cardFlipped[second] = false;
+        });
+      }
+
+      selectedCards.clear();
+      isBusy = false;
+    }
   }
 
   @override
@@ -216,7 +256,8 @@ class _GameScreenState extends State<GameScreen> {
         padding: const EdgeInsets.all(10),
         child: GridView.builder(
           itemCount: widget.gridCount,
-          gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
+          gridDelegate:
+              SliverGridDelegateWithFixedCrossAxisCount(
             crossAxisCount: crossAxisCount,
             crossAxisSpacing: 10,
             mainAxisSpacing: 10,
@@ -226,8 +267,11 @@ class _GameScreenState extends State<GameScreen> {
               onTap: () => flipCard(index),
               child: Container(
                 decoration: BoxDecoration(
-                  color: Colors.blue,
-                  borderRadius: BorderRadius.circular(15),
+                  color: matchedCards[index]
+                      ? Colors.green
+                      : Colors.blue,
+                  borderRadius:
+                      BorderRadius.circular(15),
                 ),
                 child: Center(
                   child: Text(
