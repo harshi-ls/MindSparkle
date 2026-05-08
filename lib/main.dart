@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'dart:async';
 
 void main() {
   runApp(const MindSparkleApp());
@@ -179,6 +180,9 @@ class _GameScreenState extends State<GameScreen> {
 
   bool isBusy = false;
   int score = 0;
+  late Timer timer;
+
+int timeLeft = 60;
 
   @override
   void initState() {
@@ -220,8 +224,35 @@ class _GameScreenState extends State<GameScreen> {
 
     matchedCards =
         List.generate(widget.gridCount, (index) => false);
+        setGameTimer();
+  }
+void setGameTimer() {
+  if (widget.gridCount == 4) {
+    timeLeft = 60;
+  } else if (widget.gridCount == 8) {
+    timeLeft = 90;
+  } else if (widget.gridCount == 16) {
+    timeLeft = 120;
+  } else if (widget.gridCount == 24) {
+    timeLeft = 180;
+  } else {
+    timeLeft = 240;
   }
 
+  timer = Timer.periodic(
+    const Duration(seconds: 1),
+    (timer) {
+      if (timeLeft > 0) {
+        setState(() {
+          timeLeft--;
+        });
+      } else {
+        timer.cancel();
+        showTimeUpDialog();
+      }
+    },
+  );
+}
   void flipCard(int index) async {
     if (isBusy ||
         cardFlipped[index] ||
@@ -268,6 +299,7 @@ void checkWin() {
       matchedCards.every((matched) => matched);
 
   if (hasWon) {
+    timer.cancel();
     showDialog(
       context: context,
       barrierDismissible: false,
@@ -308,6 +340,46 @@ void checkWin() {
     );
   }
 }
+void showTimeUpDialog() {
+  showDialog(
+    context: context,
+    barrierDismissible: false,
+    builder: (context) {
+      return AlertDialog(
+        title: const Text('⏰ Time\'s Up!'),
+        content: Text(
+          'Final Score: $score',
+        ),
+        actions: [
+          TextButton(
+            onPressed: () {
+              Navigator.pop(context);
+
+              setState(() {
+                generateCards();
+
+                cardFlipped = List.generate(
+                  widget.gridCount,
+                  (index) => false,
+                );
+
+                matchedCards = List.generate(
+                  widget.gridCount,
+                  (index) => false,
+                );
+
+                selectedCards.clear();
+
+                score = 0;
+              });
+            },
+            child: const Text('Play Again'),
+          ),
+        ],
+      );
+    },
+  );
+}
   @override
   Widget build(BuildContext context) {
     int crossAxisCount = 2;
@@ -325,7 +397,7 @@ void checkWin() {
     return Scaffold(
       appBar: AppBar(
         title: Text(
-  '${widget.playerName} | Score: $score',
+  '${widget.playerName} | Score: $score | ⏱ $timeLeft',
 ),
         centerTitle: true,
       ),
