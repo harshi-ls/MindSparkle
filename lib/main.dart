@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'dart:async';
+import 'package:shared_preferences/shared_preferences.dart';
 
 void main() {
   runApp(const MindSparkleApp());
@@ -133,25 +134,44 @@ const SizedBox(height: 20),
                   fillColor: Colors.white,
                 ),
               ),
-              const SizedBox(height: 25),
-              ElevatedButton(
-                onPressed: startGame,
-                style: ElevatedButton.styleFrom(
-                  padding: const EdgeInsets.symmetric(
-                    horizontal: 40,
-                    vertical: 18,
-                  ),
-                ),
-                child: const Text(
-                  'Start Game',
-                  style: TextStyle(fontSize: 20),
-                ),
-              ),
-            ],
-          ),
-        ),
+             const SizedBox(height: 25),
+
+ElevatedButton(
+  onPressed: startGame,
+  style: ElevatedButton.styleFrom(
+    padding: const EdgeInsets.symmetric(
+      horizontal: 40,
+      vertical: 18,
+    ),
+  ),
+  child: const Text(
+    'Start Game',
+    style: TextStyle(fontSize: 20),
+  ),
+),
+
+const SizedBox(height: 15),
+
+ElevatedButton(
+  onPressed: () {
+    Navigator.push(
+      context,
+      MaterialPageRoute(
+        builder: (context) =>
+            const LeaderboardScreen(),
       ),
     );
+  },
+  child: const Text(
+    '🏆 View Leaderboard',
+  ),
+),
+
+],
+),
+),
+),
+);
   }
 }
 
@@ -180,6 +200,7 @@ class _GameScreenState extends State<GameScreen> {
 
   bool isBusy = false;
   int score = 0;
+  List<String> leaderboard = [];
   late Timer timer;
 
 int timeLeft = 60;
@@ -300,6 +321,7 @@ void checkWin() {
 
   if (hasWon) {
     timer.cancel();
+    saveScore();
     showDialog(
       context: context,
       barrierDismissible: false,
@@ -380,6 +402,32 @@ void showTimeUpDialog() {
     },
   );
 }
+Future<void> saveScore() async {
+  final prefs =
+      await SharedPreferences.getInstance();
+
+  List<String> scores =
+      prefs.getStringList('leaderboard') ?? [];
+
+  scores.add(
+    '${widget.playerName} - $score',
+  );
+
+  scores.sort((a, b) {
+    int scoreA =
+        int.parse(a.split('-').last.trim());
+
+    int scoreB =
+        int.parse(b.split('-').last.trim());
+
+    return scoreB.compareTo(scoreA);
+  });
+
+  await prefs.setStringList(
+    'leaderboard',
+    scores,
+  );
+}
   @override
   Widget build(BuildContext context) {
     int crossAxisCount = 2;
@@ -435,6 +483,68 @@ void showTimeUpDialog() {
           },
         ),
       ),
+    );
+  }
+}
+class LeaderboardScreen extends StatefulWidget {
+  const LeaderboardScreen({super.key});
+
+  @override
+  State<LeaderboardScreen> createState() =>
+      _LeaderboardScreenState();
+}
+
+class _LeaderboardScreenState
+    extends State<LeaderboardScreen> {
+
+  List<String> leaderboard = [];
+
+  @override
+  void initState() {
+    super.initState();
+    loadLeaderboard();
+  }
+
+  Future<void> loadLeaderboard() async {
+    final prefs =
+        await SharedPreferences.getInstance();
+
+    setState(() {
+      leaderboard =
+          prefs.getStringList('leaderboard') ?? [];
+    });
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      appBar: AppBar(
+        title: const Text('🏆 Leaderboard'),
+        centerTitle: true,
+      ),
+      body: leaderboard.isEmpty
+          ? const Center(
+              child: Text(
+                'No scores yet!',
+                style: TextStyle(fontSize: 22),
+              ),
+            )
+          : ListView.builder(
+              itemCount: leaderboard.length,
+              itemBuilder: (context, index) {
+                return ListTile(
+                  leading: Text(
+                    '#${index + 1}',
+                    style: const TextStyle(
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
+                  title: Text(
+                    leaderboard[index],
+                  ),
+                );
+              },
+            ),
     );
   }
 }
