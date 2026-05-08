@@ -25,12 +25,21 @@ class WelcomeScreen extends StatefulWidget {
 
 class _WelcomeScreenState extends State<WelcomeScreen> {
   final TextEditingController ageController = TextEditingController();
+  final TextEditingController nameController =
+    TextEditingController();
 
   int gridCount = 4;
   String difficulty = "";
 
   void startGame() {
     int age = int.tryParse(ageController.text) ?? 0;
+    String playerName = nameController.text.trim();
+
+if (playerName.isEmpty) {
+  difficulty = "Please enter your name.";
+  setState(() {});
+  return;
+}
 
     if (age <= 0) {
       difficulty = "Please enter a valid age.";
@@ -59,9 +68,10 @@ class _WelcomeScreenState extends State<WelcomeScreen> {
       context,
       MaterialPageRoute(
         builder: (context) => GameScreen(
-          difficulty: difficulty,
-          gridCount: gridCount,
-        ),
+  difficulty: difficulty,
+  gridCount: gridCount,
+  playerName: playerName,
+),
       ),
     );
   }
@@ -96,6 +106,19 @@ class _WelcomeScreenState extends State<WelcomeScreen> {
                 'Enter your age to begin',
                 style: TextStyle(fontSize: 20),
               ),
+              TextField(
+  controller: nameController,
+  decoration: InputDecoration(
+    hintText: 'Enter Your Name',
+    border: OutlineInputBorder(
+      borderRadius: BorderRadius.circular(15),
+    ),
+    filled: true,
+    fillColor: Colors.white,
+  ),
+),
+
+const SizedBox(height: 20),
               const SizedBox(height: 30),
               TextField(
                 controller: ageController,
@@ -134,11 +157,13 @@ class _WelcomeScreenState extends State<WelcomeScreen> {
 class GameScreen extends StatefulWidget {
   final String difficulty;
   final int gridCount;
+  final String playerName;
 
   const GameScreen({
     super.key,
     required this.difficulty,
     required this.gridCount,
+    required this.playerName,
   });
 
   @override
@@ -300,7 +325,7 @@ void checkWin() {
     return Scaffold(
       appBar: AppBar(
         title: Text(
-  'Score: $score | ${widget.difficulty}',
+  '${widget.playerName} | Score: $score',
 ),
         centerTitle: true,
       ),
