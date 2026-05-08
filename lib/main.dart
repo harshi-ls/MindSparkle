@@ -131,7 +131,7 @@ class _WelcomeScreenState extends State<WelcomeScreen> {
   }
 }
 
-class GameScreen extends StatelessWidget {
+class GameScreen extends StatefulWidget {
   final String difficulty;
   final int gridCount;
 
@@ -142,44 +142,100 @@ class GameScreen extends StatelessWidget {
   });
 
   @override
+  State<GameScreen> createState() => _GameScreenState();
+}
+
+class _GameScreenState extends State<GameScreen> {
+  List<String> cardValues = [];
+  List<bool> cardFlipped = [];
+
+  @override
+  void initState() {
+    super.initState();
+    generateCards();
+  }
+
+  void generateCards() {
+    List<String> emojis = [
+      '🐶',
+      '🐱',
+      '🍎',
+      '🍌',
+      '⭐',
+      '🚗',
+      '🎈',
+      '⚽',
+      '🐸',
+      '🍕',
+      '🌈',
+      '🎮',
+      '🧠',
+      '🎵',
+      '🚀',
+      '🦋',
+      '🍇',
+      '🍩',
+    ];
+
+    int pairCount = widget.gridCount ~/ 2;
+
+    cardValues = emojis.take(pairCount).toList();
+    cardValues = [...cardValues, ...cardValues];
+
+    cardValues.shuffle();
+
+    cardFlipped = List.generate(widget.gridCount, (index) => false);
+  }
+
+  void flipCard(int index) {
+    setState(() {
+      cardFlipped[index] = !cardFlipped[index];
+    });
+  }
+
+  @override
   Widget build(BuildContext context) {
     int crossAxisCount = 2;
 
-    if (gridCount == 8) {
+    if (widget.gridCount == 8) {
       crossAxisCount = 4;
-    } else if (gridCount == 16) {
+    } else if (widget.gridCount == 16) {
       crossAxisCount = 4;
-    } else if (gridCount == 24) {
+    } else if (widget.gridCount == 24) {
       crossAxisCount = 6;
-    } else if (gridCount == 36) {
+    } else if (widget.gridCount == 36) {
       crossAxisCount = 6;
     }
 
     return Scaffold(
       appBar: AppBar(
-        title: Text('Difficulty: $difficulty'),
+        title: Text('Difficulty: ${widget.difficulty}'),
         centerTitle: true,
       ),
       body: Padding(
         padding: const EdgeInsets.all(10),
         child: GridView.builder(
-          itemCount: gridCount,
+          itemCount: widget.gridCount,
           gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
             crossAxisCount: crossAxisCount,
             crossAxisSpacing: 10,
             mainAxisSpacing: 10,
           ),
           itemBuilder: (context, index) {
-            return Container(
-              decoration: BoxDecoration(
-                color: Colors.blue,
-                borderRadius: BorderRadius.circular(15),
-              ),
-              child: const Center(
-                child: Icon(
-                  Icons.question_mark,
-                  color: Colors.white,
-                  size: 40,
+            return GestureDetector(
+              onTap: () => flipCard(index),
+              child: Container(
+                decoration: BoxDecoration(
+                  color: Colors.blue,
+                  borderRadius: BorderRadius.circular(15),
+                ),
+                child: Center(
+                  child: Text(
+                    cardFlipped[index]
+                        ? cardValues[index]
+                        : '❓',
+                    style: const TextStyle(fontSize: 35),
+                  ),
                 ),
               ),
             );
