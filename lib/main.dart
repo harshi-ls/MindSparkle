@@ -525,11 +525,30 @@ class _GameScreenState extends State<GameScreen> {
                   borderRadius: BorderRadius.circular(15),
                 ),
                 child: Center(
-                  child: Text(
-                    cardFlipped[index] ? cardValues[index] : '❓',
-                    style: const TextStyle(fontSize: 35),
-                  ),
-                ),
+  child: AnimatedSwitcher(
+    duration: const Duration(
+      milliseconds: 500,
+    ),
+    transitionBuilder:
+        (Widget child, Animation<double> animation) {
+      return RotationYTransition(
+        turns: animation,
+        child: child,
+      );
+    },
+    child: Text(
+      cardFlipped[index]
+          ? cardValues[index]
+          : '❓',
+      key: ValueKey(
+        cardFlipped[index],
+      ),
+      style: const TextStyle(
+        fontSize: 35,
+      ),
+    ),
+  ),
+),
               ),
             );
           },
@@ -679,6 +698,39 @@ class VictoryScreen extends StatelessWidget {
           ),
         ],
       ),
+    );
+  }
+}
+class RotationYTransition extends AnimatedWidget {
+  final Widget child;
+
+  const RotationYTransition({
+    super.key,
+    required Animation<double> turns,
+    required this.child,
+  }) : super(listenable: turns);
+
+  @override
+  Widget build(BuildContext context) {
+    final animation =
+        listenable as Animation<double>;
+
+    final rotate =
+        Tween(begin: pi, end: 0.0)
+            .animate(animation);
+
+    return AnimatedBuilder(
+      animation: rotate,
+      child: child,
+      builder: (context, child) {
+        return Transform(
+          transform: Matrix4.rotationY(
+            rotate.value,
+          ),
+          alignment: Alignment.center,
+          child: child,
+        );
+      },
     );
   }
 }
