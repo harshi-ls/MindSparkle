@@ -1,5 +1,7 @@
-import 'package:flutter/material.dart';
 import 'dart:async';
+import 'dart:math';
+
+import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 void main() {
@@ -11,9 +13,9 @@ class MindSparkleApp extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return MaterialApp(
+    return const MaterialApp(
       debugShowCheckedModeBanner: false,
-      home: const WelcomeScreen(),
+      home: WelcomeScreen(),
     );
   }
 }
@@ -27,25 +29,33 @@ class WelcomeScreen extends StatefulWidget {
 
 class _WelcomeScreenState extends State<WelcomeScreen> {
   final TextEditingController ageController = TextEditingController();
-  final TextEditingController nameController =
-    TextEditingController();
+  final TextEditingController nameController = TextEditingController();
 
   int gridCount = 4;
   String difficulty = "";
+
+  @override
+  void dispose() {
+    ageController.dispose();
+    nameController.dispose();
+    super.dispose();
+  }
 
   void startGame() {
     int age = int.tryParse(ageController.text) ?? 0;
     String playerName = nameController.text.trim();
 
-if (playerName.isEmpty) {
-  difficulty = "Please enter your name.";
-  setState(() {});
-  return;
-}
+    if (playerName.isEmpty) {
+      setState(() {
+        difficulty = "Please enter your name.";
+      });
+      return;
+    }
 
     if (age <= 0) {
-      difficulty = "Please enter a valid age.";
-      setState(() {});
+      setState(() {
+        difficulty = "Please enter a valid age.";
+      });
       return;
     }
 
@@ -70,10 +80,10 @@ if (playerName.isEmpty) {
       context,
       MaterialPageRoute(
         builder: (context) => GameScreen(
-  difficulty: difficulty,
-  gridCount: gridCount,
-  playerName: playerName,
-),
+          difficulty: difficulty,
+          gridCount: gridCount,
+          playerName: playerName,
+        ),
       ),
     );
   }
@@ -105,23 +115,22 @@ if (playerName.isEmpty) {
               ),
               const SizedBox(height: 20),
               const Text(
-                'Enter your age to begin',
+                'Enter your details to begin',
                 style: TextStyle(fontSize: 20),
               ),
+              const SizedBox(height: 20),
               TextField(
-  controller: nameController,
-  decoration: InputDecoration(
-    hintText: 'Enter Your Name',
-    border: OutlineInputBorder(
-      borderRadius: BorderRadius.circular(15),
-    ),
-    filled: true,
-    fillColor: Colors.white,
-  ),
-),
-
-const SizedBox(height: 20),
-              const SizedBox(height: 30),
+                controller: nameController,
+                decoration: InputDecoration(
+                  hintText: 'Enter Your Name',
+                  border: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(15),
+                  ),
+                  filled: true,
+                  fillColor: Colors.white,
+                ),
+              ),
+              const SizedBox(height: 20),
               TextField(
                 controller: ageController,
                 keyboardType: TextInputType.number,
@@ -134,44 +143,45 @@ const SizedBox(height: 20),
                   fillColor: Colors.white,
                 ),
               ),
-             const SizedBox(height: 25),
-
-ElevatedButton(
-  onPressed: startGame,
-  style: ElevatedButton.styleFrom(
-    padding: const EdgeInsets.symmetric(
-      horizontal: 40,
-      vertical: 18,
-    ),
-  ),
-  child: const Text(
-    'Start Game',
-    style: TextStyle(fontSize: 20),
-  ),
-),
-
-const SizedBox(height: 15),
-
-ElevatedButton(
-  onPressed: () {
-    Navigator.push(
-      context,
-      MaterialPageRoute(
-        builder: (context) =>
-            const LeaderboardScreen(),
+              const SizedBox(height: 15),
+              Text(
+                difficulty,
+                style: const TextStyle(
+                  color: Colors.red,
+                  fontSize: 16,
+                ),
+              ),
+              const SizedBox(height: 15),
+              ElevatedButton(
+                onPressed: startGame,
+                style: ElevatedButton.styleFrom(
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 40,
+                    vertical: 18,
+                  ),
+                ),
+                child: const Text(
+                  'Start Game',
+                  style: TextStyle(fontSize: 20),
+                ),
+              ),
+              const SizedBox(height: 15),
+              ElevatedButton(
+                onPressed: () {
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                      builder: (context) => const LeaderboardScreen(),
+                    ),
+                  );
+                },
+                child: const Text('🏆 View Leaderboard'),
+              ),
+            ],
+          ),
+        ),
       ),
     );
-  },
-  child: const Text(
-    '🏆 View Leaderboard',
-  ),
-),
-
-],
-),
-),
-),
-);
   }
 }
 
@@ -195,20 +205,78 @@ class _GameScreenState extends State<GameScreen> {
   List<String> cardValues = [];
   List<bool> cardFlipped = [];
   List<bool> matchedCards = [];
-
   List<int> selectedCards = [];
 
   bool isBusy = false;
   int score = 0;
-  List<String> leaderboard = [];
   late Timer timer;
+  int timeLeft = 60;
 
-int timeLeft = 60;
+  final List<Map<String, String>> heroes = [
+    {
+      'name': 'Moon Knight 🌙',
+      'image': 'assets/images/Moon Knight.jpg',
+    },
+    {
+      'name': 'Minnal Murali ⚡',
+      'image': 'assets/images/Minnal Murali.jpg',
+    },
+    {
+      'name': 'Joker 🃏',
+      'image': 'assets/images/Joker.jpg',
+    },
+    {
+      'name': 'Deadpool 🔴',
+      'image': 'assets/images/Deadpool.jpg',
+    },
+    {
+      'name': 'Spider-Man 🕷️',
+      'image': 'assets/images/Spiderman.jpg',
+    },
+    {
+      'name': 'Captain America 🛡️',
+      'image': 'assets/images/Captainamerica.jpg',
+    },
+    {
+      'name': 'Thor ⚒️',
+      'image': 'assets/images/Thor.jpg',
+    },
+    {
+      'name': 'Thanos 💀',
+      'image': 'assets/images/Thanos.jpg',
+    },
+    {
+      'name': 'Superman 💥',
+      'image': 'assets/images/Superman.jpg',
+    },
+    {
+      'name': 'Venom 🖤',
+      'image': 'assets/images/Venom.jpg',
+    },
+    {
+      'name': 'Batman 🦇',
+      'image': 'assets/images/Batman.jpg',
+    },
+    {
+      'name': 'Hulk 💚',
+      'image': 'assets/images/Hulk.jpg',
+    },
+    {
+      'name': 'Iron Man 🤖',
+      'image': 'assets/images/Ironman.jpg',
+    },
+  ];
 
   @override
   void initState() {
     super.initState();
     generateCards();
+  }
+
+  @override
+  void dispose() {
+    timer.cancel();
+    super.dispose();
   }
 
   void generateCards() {
@@ -237,47 +305,46 @@ int timeLeft = 60;
 
     cardValues = emojis.take(pairCount).toList();
     cardValues = [...cardValues, ...cardValues];
-
     cardValues.shuffle();
 
-    cardFlipped =
-        List.generate(widget.gridCount, (index) => false);
+    cardFlipped = List.generate(widget.gridCount, (index) => false);
+    matchedCards = List.generate(widget.gridCount, (index) => false);
 
-    matchedCards =
-        List.generate(widget.gridCount, (index) => false);
-        setGameTimer();
-  }
-void setGameTimer() {
-  if (widget.gridCount == 4) {
-    timeLeft = 60;
-  } else if (widget.gridCount == 8) {
-    timeLeft = 90;
-  } else if (widget.gridCount == 16) {
-    timeLeft = 120;
-  } else if (widget.gridCount == 24) {
-    timeLeft = 180;
-  } else {
-    timeLeft = 240;
+    setGameTimer();
   }
 
-  timer = Timer.periodic(
-    const Duration(seconds: 1),
-    (timer) {
-      if (timeLeft > 0) {
-        setState(() {
-          timeLeft--;
-        });
-      } else {
-        timer.cancel();
-        showTimeUpDialog();
-      }
-    },
-  );
-}
+  void setGameTimer() {
+    if (widget.gridCount == 4) {
+      timeLeft = 60;
+    } else if (widget.gridCount == 8) {
+      timeLeft = 90;
+    } else if (widget.gridCount == 16) {
+      timeLeft = 120;
+    } else if (widget.gridCount == 24) {
+      timeLeft = 180;
+    } else {
+      timeLeft = 240;
+    }
+
+    timer = Timer.periodic(
+      const Duration(seconds: 1),
+      (timer) {
+        if (!mounted) return;
+
+        if (timeLeft > 0) {
+          setState(() {
+            timeLeft--;
+          });
+        } else {
+          timer.cancel();
+          showTimeUpDialog();
+        }
+      },
+    );
+  }
+
   void flipCard(int index) async {
-    if (isBusy ||
-        cardFlipped[index] ||
-        matchedCards[index]) {
+    if (isBusy || cardFlipped[index] || matchedCards[index]) {
       return;
     }
 
@@ -293,16 +360,17 @@ void setGameTimer() {
       int second = selectedCards[1];
 
       if (cardValues[first] == cardValues[second]) {
-  matchedCards[first] = true;
-  matchedCards[second] = true;
+        setState(() {
+          matchedCards[first] = true;
+          matchedCards[second] = true;
+          score += 10;
+        });
 
-  score += 10;
+        checkWin();
+      } else {
+        await Future.delayed(const Duration(seconds: 1));
 
-  checkWin();
-} else {
-        await Future.delayed(
-          const Duration(seconds: 1),
-        );
+        if (!mounted) return;
 
         setState(() {
           cardFlipped[first] = false;
@@ -315,43 +383,50 @@ void setGameTimer() {
       isBusy = false;
     }
   }
-void checkWin() {
-  bool hasWon =
-      matchedCards.every((matched) => matched);
 
-  if (hasWon) {
-    timer.cancel();
-    saveScore();
+  Future<void> checkWin() async {
+    bool hasWon = matchedCards.every((matched) => matched);
+
+    if (hasWon) {
+      timer.cancel();
+      await saveScore();
+
+      if (!mounted) return;
+
+      final randomHero = heroes[Random().nextInt(heroes.length)];
+
+      Navigator.push(
+        context,
+        MaterialPageRoute(
+          builder: (context) => VictoryScreen(
+            heroName: randomHero['name']!,
+            heroImage: randomHero['image']!,
+            score: score,
+            timeLeft: timeLeft,
+            playerName: widget.playerName,
+          ),
+        ),
+      );
+    }
+  }
+
+  void showTimeUpDialog() {
     showDialog(
       context: context,
       barrierDismissible: false,
       builder: (context) {
         return AlertDialog(
-          title: const Text('🎉 Congratulations!'),
-          content: Text(
-            'You completed the game!\n\nScore: $score',
-          ),
+          title: const Text('⏰ Time\'s Up!'),
+          content: Text('Final Score: $score'),
           actions: [
             TextButton(
               onPressed: () {
                 Navigator.pop(context);
 
                 setState(() {
-                  generateCards();
-
-                  cardFlipped = List.generate(
-                    widget.gridCount,
-                    (index) => false,
-                  );
-
-                  matchedCards = List.generate(
-                    widget.gridCount,
-                    (index) => false,
-                  );
-
                   selectedCards.clear();
-
                   score = 0;
+                  generateCards();
                 });
               },
               child: const Text('Play Again'),
@@ -361,73 +436,24 @@ void checkWin() {
       },
     );
   }
-}
-void showTimeUpDialog() {
-  showDialog(
-    context: context,
-    barrierDismissible: false,
-    builder: (context) {
-      return AlertDialog(
-        title: const Text('⏰ Time\'s Up!'),
-        content: Text(
-          'Final Score: $score',
-        ),
-        actions: [
-          TextButton(
-            onPressed: () {
-              Navigator.pop(context);
 
-              setState(() {
-                generateCards();
+  Future<void> saveScore() async {
+    final prefs = await SharedPreferences.getInstance();
 
-                cardFlipped = List.generate(
-                  widget.gridCount,
-                  (index) => false,
-                );
+    List<String> scores = prefs.getStringList('leaderboard') ?? [];
 
-                matchedCards = List.generate(
-                  widget.gridCount,
-                  (index) => false,
-                );
+    scores.add('${widget.playerName} - $score');
 
-                selectedCards.clear();
+    scores.sort((a, b) {
+      int scoreA = int.parse(a.split('-').last.trim());
+      int scoreB = int.parse(b.split('-').last.trim());
 
-                score = 0;
-              });
-            },
-            child: const Text('Play Again'),
-          ),
-        ],
-      );
-    },
-  );
-}
-Future<void> saveScore() async {
-  final prefs =
-      await SharedPreferences.getInstance();
+      return scoreB.compareTo(scoreA);
+    });
 
-  List<String> scores =
-      prefs.getStringList('leaderboard') ?? [];
+    await prefs.setStringList('leaderboard', scores);
+  }
 
-  scores.add(
-    '${widget.playerName} - $score',
-  );
-
-  scores.sort((a, b) {
-    int scoreA =
-        int.parse(a.split('-').last.trim());
-
-    int scoreB =
-        int.parse(b.split('-').last.trim());
-
-    return scoreB.compareTo(scoreA);
-  });
-
-  await prefs.setStringList(
-    'leaderboard',
-    scores,
-  );
-}
   @override
   Widget build(BuildContext context) {
     int crossAxisCount = 2;
@@ -445,16 +471,15 @@ Future<void> saveScore() async {
     return Scaffold(
       appBar: AppBar(
         title: Text(
-  '${widget.playerName} | Score: $score | ⏱ $timeLeft',
-),
+          '${widget.playerName} | Score: $score | ⏱ $timeLeft',
+        ),
         centerTitle: true,
       ),
       body: Padding(
         padding: const EdgeInsets.all(10),
         child: GridView.builder(
           itemCount: widget.gridCount,
-          gridDelegate:
-              SliverGridDelegateWithFixedCrossAxisCount(
+          gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
             crossAxisCount: crossAxisCount,
             crossAxisSpacing: 10,
             mainAxisSpacing: 10,
@@ -464,17 +489,12 @@ Future<void> saveScore() async {
               onTap: () => flipCard(index),
               child: Container(
                 decoration: BoxDecoration(
-                  color: matchedCards[index]
-                      ? Colors.green
-                      : Colors.blue,
-                  borderRadius:
-                      BorderRadius.circular(15),
+                  color: matchedCards[index] ? Colors.green : Colors.blue,
+                  borderRadius: BorderRadius.circular(15),
                 ),
                 child: Center(
                   child: Text(
-                    cardFlipped[index]
-                        ? cardValues[index]
-                        : '❓',
+                    cardFlipped[index] ? cardValues[index] : '❓',
                     style: const TextStyle(fontSize: 35),
                   ),
                 ),
@@ -486,17 +506,15 @@ Future<void> saveScore() async {
     );
   }
 }
+
 class LeaderboardScreen extends StatefulWidget {
   const LeaderboardScreen({super.key});
 
   @override
-  State<LeaderboardScreen> createState() =>
-      _LeaderboardScreenState();
+  State<LeaderboardScreen> createState() => _LeaderboardScreenState();
 }
 
-class _LeaderboardScreenState
-    extends State<LeaderboardScreen> {
-
+class _LeaderboardScreenState extends State<LeaderboardScreen> {
   List<String> leaderboard = [];
 
   @override
@@ -506,12 +524,10 @@ class _LeaderboardScreenState
   }
 
   Future<void> loadLeaderboard() async {
-    final prefs =
-        await SharedPreferences.getInstance();
+    final prefs = await SharedPreferences.getInstance();
 
     setState(() {
-      leaderboard =
-          prefs.getStringList('leaderboard') ?? [];
+      leaderboard = prefs.getStringList('leaderboard') ?? [];
     });
   }
 
@@ -539,12 +555,98 @@ class _LeaderboardScreenState
                       fontWeight: FontWeight.bold,
                     ),
                   ),
-                  title: Text(
-                    leaderboard[index],
-                  ),
+                  title: Text(leaderboard[index]),
                 );
               },
             ),
+    );
+  }
+}
+
+class VictoryScreen extends StatelessWidget {
+  final String heroName;
+  final String heroImage;
+  final int score;
+  final int timeLeft;
+  final String playerName;
+
+  const VictoryScreen({
+    super.key,
+    required this.heroName,
+    required this.heroImage,
+    required this.score,
+    required this.timeLeft,
+    required this.playerName,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      body: Stack(
+        fit: StackFit.expand,
+        children: [
+          Image.asset(
+            heroImage,
+            fit: BoxFit.cover,
+          ),
+          Container(
+            color: Colors.black.withOpacity(0.6),
+          ),
+          Center(
+            child: Padding(
+              padding: const EdgeInsets.all(20),
+              child: Column(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  const Text(
+                    '🔥 HEY LEGEND!',
+                    textAlign: TextAlign.center,
+                    style: TextStyle(
+                      color: Colors.white,
+                      fontSize: 38,
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
+                  const SizedBox(height: 20),
+                  Text(
+                    'You are\n$heroName',
+                    textAlign: TextAlign.center,
+                    style: const TextStyle(
+                      color: Colors.yellow,
+                      fontSize: 34,
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
+                  const SizedBox(height: 30),
+                  Text(
+                    '⭐ Score: $score',
+                    style: const TextStyle(
+                      color: Colors.white,
+                      fontSize: 24,
+                    ),
+                  ),
+                  const SizedBox(height: 10),
+                  Text(
+                    '⏱ Time Left: $timeLeft s',
+                    style: const TextStyle(
+                      color: Colors.white,
+                      fontSize: 24,
+                    ),
+                  ),
+                  const SizedBox(height: 40),
+                  ElevatedButton(
+                    onPressed: () {
+                      Navigator.pop(context);
+                      Navigator.pop(context);
+                    },
+                    child: const Text('🏠 Back To Home'),
+                  ),
+                ],
+              ),
+            ),
+          ),
+        ],
+      ),
     );
   }
 }
