@@ -411,15 +411,45 @@ class _GameScreenState extends State<GameScreen> {
   }
 
   void showTimeUpDialog() {
-    showDialog(
-      context: context,
-      barrierDismissible: false,
-      builder: (context) {
-        return AlertDialog(
-          title: const Text('⏰ Time\'s Up!'),
-          content: Text('Final Score: $score'),
-          actions: [
-            TextButton(
+  showDialog(
+    context: context,
+    barrierDismissible: false,
+    builder: (context) {
+      return AlertDialog(
+        backgroundColor: Colors.black87,
+        title: const Text(
+          '⚔️ Warriors Never Quit!',
+          textAlign: TextAlign.center,
+          style: TextStyle(
+            color: Colors.orange,
+            fontWeight: FontWeight.bold,
+            fontSize: 28,
+          ),
+        ),
+        content: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            const Icon(
+              Icons.shield,
+              color: Colors.orange,
+              size: 80,
+            ),
+            const SizedBox(height: 20),
+            Text(
+              '${widget.playerName}, this battle is not over yet!\n\n'
+              'Final Score: $score\n\n'
+              'A true hero always rises again 💪',
+              textAlign: TextAlign.center,
+              style: const TextStyle(
+                color: Colors.white,
+                fontSize: 18,
+              ),
+            ),
+          ],
+        ),
+        actions: [
+          Center(
+            child: ElevatedButton(
               onPressed: () {
                 Navigator.pop(context);
 
@@ -429,13 +459,15 @@ class _GameScreenState extends State<GameScreen> {
                   generateCards();
                 });
               },
-              child: const Text('Play Again'),
+              child: const Text('🔄 Try Again'),
             ),
-          ],
-        );
-      },
-    );
-  }
+          ),
+        ],
+      );
+    },
+  );
+}
+
 
   Future<void> saveScore() async {
     final prefs = await SharedPreferences.getInstance();
