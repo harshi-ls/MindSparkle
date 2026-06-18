@@ -27,18 +27,85 @@ class WelcomeScreen extends StatefulWidget {
   State<WelcomeScreen> createState() => _WelcomeScreenState();
 }
 
-class _WelcomeScreenState extends State<WelcomeScreen> {
+class _WelcomeScreenState extends State<WelcomeScreen>
+    with SingleTickerProviderStateMixin {
   final TextEditingController ageController = TextEditingController();
   final TextEditingController nameController = TextEditingController();
 
   int gridCount = 4;
   String difficulty = "";
 
+  late final AnimationController _animationController;
+
+  @override
+  void initState() {
+    super.initState();
+    _animationController = AnimationController(
+      vsync: this,
+      duration: const Duration(seconds: 12),
+    )..repeat();
+  }
+
   @override
   void dispose() {
     ageController.dispose();
     nameController.dispose();
+    _animationController.dispose();
     super.dispose();
+  }
+
+  Offset _animatedOffset(
+    double width,
+    double height,
+    double xFactor,
+    double yFactor,
+    double speed,
+    double phase,
+    double xVariance,
+    double yVariance,
+  ) {
+    final progress = _animationController.value;
+    final dx = xFactor * width +
+        sin((progress * 2 * pi * speed) + phase) * xVariance;
+    final dy = yFactor * height +
+        cos((progress * 2 * pi * speed) + phase) * yVariance;
+
+    return Offset(
+      dx.clamp(0.0, width - 10.0).toDouble(),
+      dy.clamp(0.0, height - 10.0).toDouble(),
+    );
+  }
+
+  Widget _floatingBubble({
+    required Offset offset,
+    required double size,
+    required Color color,
+    double blur = 14,
+  }) {
+    return Positioned(
+      left: offset.dx,
+      top: offset.dy,
+      child: Container(
+        width: size,
+        height: size,
+        decoration: BoxDecoration(
+          color: color,
+          shape: BoxShape.circle,
+          boxShadow: [
+            BoxShadow(
+              color: Color.fromRGBO(
+                color.r,
+                color.g,
+                color.b,
+                0.35,
+              ),
+              blurRadius: blur,
+              spreadRadius: 2,
+            ),
+          ],
+        ),
+      ),
+    );
   }
 
   void startGame() {
@@ -91,95 +158,323 @@ class _WelcomeScreenState extends State<WelcomeScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: Colors.lightBlue.shade50,
+      extendBodyBehindAppBar: true,
+      backgroundColor: Colors.transparent,
       appBar: AppBar(
-        backgroundColor: Colors.blue,
+        backgroundColor: Colors.transparent,
+        elevation: 0,
+        centerTitle: true,
         title: const Text(
           'MindSparkle',
-          style: TextStyle(fontWeight: FontWeight.bold),
-        ),
-        centerTitle: true,
-      ),
-      body: Center(
-        child: Padding(
-          padding: const EdgeInsets.all(20),
-          child: Column(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: [
-              const Text(
-                '🧠 MindSparkle',
-                style: TextStyle(
-                  fontSize: 36,
-                  fontWeight: FontWeight.bold,
-                ),
-              ),
-              const SizedBox(height: 20),
-              const Text(
-                'Enter your details to begin',
-                style: TextStyle(fontSize: 20),
-              ),
-              const SizedBox(height: 20),
-              TextField(
-                controller: nameController,
-                decoration: InputDecoration(
-                  hintText: 'Enter Your Name',
-                  border: OutlineInputBorder(
-                    borderRadius: BorderRadius.circular(15),
-                  ),
-                  filled: true,
-                  fillColor: Colors.white,
-                ),
-              ),
-              const SizedBox(height: 20),
-              TextField(
-                controller: ageController,
-                keyboardType: TextInputType.number,
-                decoration: InputDecoration(
-                  hintText: 'Enter Age',
-                  border: OutlineInputBorder(
-                    borderRadius: BorderRadius.circular(15),
-                  ),
-                  filled: true,
-                  fillColor: Colors.white,
-                ),
-              ),
-              const SizedBox(height: 15),
-              Text(
-                difficulty,
-                style: const TextStyle(
-                  color: Colors.red,
-                  fontSize: 16,
-                ),
-              ),
-              const SizedBox(height: 15),
-              ElevatedButton(
-                onPressed: startGame,
-                style: ElevatedButton.styleFrom(
-                  padding: const EdgeInsets.symmetric(
-                    horizontal: 40,
-                    vertical: 18,
-                  ),
-                ),
-                child: const Text(
-                  'Start Game',
-                  style: TextStyle(fontSize: 20),
-                ),
-              ),
-              const SizedBox(height: 15),
-              ElevatedButton(
-                onPressed: () {
-                  Navigator.push(
-                    context,
-                    MaterialPageRoute(
-                      builder: (context) => const LeaderboardScreen(),
-                    ),
-                  );
-                },
-                child: const Text('🏆 View Leaderboard'),
-              ),
-            ],
+          style: TextStyle(
+            fontWeight: FontWeight.bold,
+            letterSpacing: 1.2,
           ),
         ),
+        flexibleSpace: Container(
+          decoration: const BoxDecoration(
+            gradient: LinearGradient(
+              colors: [Color(0xFF8AD8FF), Color(0xFF4FC3F7)],
+              begin: Alignment.topLeft,
+              end: Alignment.bottomRight,
+            ),
+          ),
+        ),
+      ),
+      body: Stack(
+        children: [
+          Container(
+            decoration: const BoxDecoration(
+              gradient: LinearGradient(
+                colors: [
+                  Color(0xFFE3F2FD),
+                  Color(0xFF81D4FA),
+                  Color(0xFF4FC3F7),
+                  Color(0xFF0288D1),
+                ],
+                begin: Alignment.topLeft,
+                end: Alignment.bottomRight,
+              ),
+            ),
+          ),
+          AnimatedBuilder(
+            animation: _animationController,
+            builder: (context, child) {
+              return LayoutBuilder(
+                builder: (context, constraints) {
+                  final width = constraints.maxWidth;
+                  final height = constraints.maxHeight;
+                  return Stack(
+                    children: [
+                      _floatingBubble(
+                        offset: _animatedOffset(
+                          width,
+                          height,
+                          0.12,
+                          0.18,
+                          1.0,
+                          0.2,
+                          40,
+                          22,
+                        ),
+                        size: 84,
+                        color: const Color.fromRGBO(255, 255, 255, 0.22),
+                      ),
+                      _floatingBubble(
+                        offset: _animatedOffset(
+                          width,
+                          height,
+                          0.75,
+                          0.10,
+                          0.9,
+                          1.3,
+                          36,
+                          28,
+                        ),
+                        size: 68,
+                        color: const Color.fromRGBO(255, 255, 255, 0.18),
+                      ),
+                      _floatingBubble(
+                        offset: _animatedOffset(
+                          width,
+                          height,
+                          0.30,
+                          0.82,
+                          1.2,
+                          2.1,
+                          40,
+                          32,
+                        ),
+                        size: 96,
+                        color: const Color.fromRGBO(255, 255, 255, 0.16),
+                      ),
+                      Positioned(
+                        left: _animatedOffset(
+                          width,
+                          height,
+                          0.20,
+                          0.45,
+                          1.0,
+                          0.7,
+                          60,
+                          36,
+                        ).dx,
+                        top: _animatedOffset(
+                          width,
+                          height,
+                          0.20,
+                          0.45,
+                          1.0,
+                          0.7,
+                          60,
+                          36,
+                        ).dy,
+                        child: const Icon(
+                          Icons.star,
+                          color: Color(0xFFFFF9C4),
+                          size: 28,
+                        ),
+                      ),
+                      Positioned(
+                        left: _animatedOffset(
+                          width,
+                          height,
+                          0.82,
+                          0.62,
+                          1.1,
+                          1.8,
+                          44,
+                          30,
+                        ).dx,
+                        top: _animatedOffset(
+                          width,
+                          height,
+                          0.82,
+                          0.62,
+                          1.1,
+                          1.8,
+                          44,
+                          30,
+                        ).dy,
+                        child: const Icon(
+                          Icons.auto_awesome,
+                          color: Color(0xFFB3E5FC),
+                          size: 30,
+                        ),
+                      ),
+                      Positioned(
+                        left: _animatedOffset(
+                          width,
+                          height,
+                          0.52,
+                          0.26,
+                          1.3,
+                          0.5,
+                          52,
+                          34,
+                        ).dx,
+                        top: _animatedOffset(
+                          width,
+                          height,
+                          0.52,
+                          0.26,
+                          1.3,
+                          0.5,
+                          52,
+                          34,
+                        ).dy,
+                        child: const Icon(
+                          Icons.bubble_chart,
+                          color: Color(0xFFB3E5FC),
+                          size: 34,
+                        ),
+                      ),
+                    ],
+                  );
+                },
+              );
+            },
+          ),
+          SafeArea(
+            child: Center(
+              child: SingleChildScrollView(
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 22,
+                  vertical: 32,
+                ),
+                child: Container(
+                  padding: const EdgeInsets.all(24),
+                  decoration: BoxDecoration(
+                    color: const Color.fromRGBO(255, 255, 255, 0.92),
+                    borderRadius: BorderRadius.circular(32),
+                    border: Border.all(
+                      color: const Color.fromRGBO(255, 255, 255, 0.85),
+                      width: 1.4,
+                    ),
+                    boxShadow: [
+                      BoxShadow(
+                        color: const Color.fromRGBO(144, 202, 249, 0.35),
+                        blurRadius: 24,
+                        spreadRadius: 2,
+                      ),
+                    ],
+                  ),
+                  child: Column(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      const Text(
+                        '🧠 MindSparkle',
+                        textAlign: TextAlign.center,
+                        style: TextStyle(
+                          fontSize: 40,
+                          fontWeight: FontWeight.bold,
+                          letterSpacing: 1.1,
+                        ),
+                      ),
+                      const SizedBox(height: 12),
+                      Text(
+                        'A memory challenge for young minds and curious adults.',
+                        textAlign: TextAlign.center,
+                        style: TextStyle(
+                          fontSize: 18,
+                          color: Colors.blueGrey.shade700,
+                        ),
+                      ),
+                      const SizedBox(height: 24),
+                      TextField(
+                        controller: nameController,
+                        decoration: InputDecoration(
+                          hintText: 'Enter your name',
+                          filled: true,
+                          fillColor: Colors.white,
+                          border: OutlineInputBorder(
+                            borderRadius: BorderRadius.circular(18),
+                            borderSide: BorderSide(
+                              color: Colors.blue.shade100,
+                            ),
+                          ),
+                        ),
+                      ),
+                      const SizedBox(height: 18),
+                      TextField(
+                        controller: ageController,
+                        keyboardType: TextInputType.number,
+                        decoration: InputDecoration(
+                          hintText: 'Enter your age',
+                          filled: true,
+                          fillColor: Colors.white,
+                          border: OutlineInputBorder(
+                            borderRadius: BorderRadius.circular(18),
+                            borderSide: BorderSide(
+                              color: Colors.blue.shade100,
+                            ),
+                          ),
+                        ),
+                      ),
+                      const SizedBox(height: 16),
+                      Text(
+                        difficulty,
+                        style: const TextStyle(
+                          color: Colors.red,
+                          fontSize: 16,
+                        ),
+                      ),
+                      const SizedBox(height: 16),
+                      ElevatedButton(
+                        onPressed: startGame,
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor: Colors.blue.shade700,
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(18),
+                          ),
+                          padding: const EdgeInsets.symmetric(
+                            horizontal: 40,
+                            vertical: 18,
+                          ),
+                        ),
+                        child: const Text(
+                          'Start Game',
+                          style: TextStyle(fontSize: 20),
+                        ),
+                      ),
+                      const SizedBox(height: 14),
+                      OutlinedButton(
+                        onPressed: () {
+                          Navigator.push(
+                            context,
+                            MaterialPageRoute(
+                              builder: (context) => const LeaderboardScreen(),
+                            ),
+                          );
+                        },
+                        style: OutlinedButton.styleFrom(
+                          side: BorderSide(
+                            color: Colors.blue.shade700,
+                            width: 1.8,
+                          ),
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(18),
+                          ),
+                          padding: const EdgeInsets.symmetric(
+                            horizontal: 26,
+                            vertical: 16,
+                          ),
+                        ),
+                        child: Text(
+                          '🏆 View Leaderboard',
+                          style: TextStyle(
+                            color: Colors.blue.shade900,
+                            fontSize: 16,
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+            ),
+          ),
+        ],
       ),
     );
   }
@@ -206,6 +501,17 @@ class _GameScreenState extends State<GameScreen> {
   List<bool> cardFlipped = [];
   List<bool> matchedCards = [];
   List<int> selectedCards = [];
+
+  final List<Color> cardColors = [
+    Colors.blue.shade600,
+    Colors.purple.shade600,
+    Colors.teal.shade600,
+    Colors.pink.shade600,
+    Colors.orange.shade600,
+    Colors.cyan.shade600,
+    Colors.indigo.shade600,
+    Colors.green.shade600,
+  ];
 
   bool isBusy = false;
   int score = 0;
@@ -283,22 +589,34 @@ class _GameScreenState extends State<GameScreen> {
     List<String> emojis = [
       '🐶',
       '🐱',
+      '🐼',
+      '🦊',
+      '🦄',
+      '🐙',
       '🍎',
       '🍌',
+      '🍓',
+      '🍉',
       '⭐',
+      '🌟',
       '🚗',
+      '🚀',
       '🎈',
+      '🎁',
       '⚽',
-      '🐸',
-      '🍕',
-      '🌈',
       '🎮',
       '🧠',
       '🎵',
-      '🚀',
+      '🧩',
+      '🧁',
+      '🪐',
+      '🎯',
       '🦋',
-      '🍇',
-      '🍩',
+      '🌈',
+      '🍕',
+      '🎨',
+      '💎',
+      '🛸',
     ];
 
     int pairCount = widget.gridCount ~/ 2;
@@ -501,57 +819,108 @@ class _GameScreenState extends State<GameScreen> {
     }
 
     return Scaffold(
+      extendBodyBehindAppBar: true,
       appBar: AppBar(
+        backgroundColor: Colors.transparent,
+        elevation: 0,
         title: Text(
           '${widget.playerName} | Score: $score | ⏱ $timeLeft',
+          style: const TextStyle(
+            fontSize: 16,
+            fontWeight: FontWeight.w600,
+            letterSpacing: 0.2,
+          ),
         ),
         centerTitle: true,
       ),
-      body: Padding(
-        padding: const EdgeInsets.all(10),
-        child: GridView.builder(
-          itemCount: widget.gridCount,
-          gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
-            crossAxisCount: crossAxisCount,
-            crossAxisSpacing: 10,
-            mainAxisSpacing: 10,
+      body: Container(
+        decoration: const BoxDecoration(
+          gradient: LinearGradient(
+            colors: [
+              Color(0xFFB3E5FC),
+              Color(0xFF81D4FA),
+              Color(0xFF4FC3F7),
+              Color(0xFF1E88E5),
+            ],
+            begin: Alignment.topLeft,
+            end: Alignment.bottomRight,
           ),
-          itemBuilder: (context, index) {
-            return GestureDetector(
-              onTap: () => flipCard(index),
-              child: Container(
-                decoration: BoxDecoration(
-                  color: matchedCards[index] ? Colors.green : Colors.blue,
-                  borderRadius: BorderRadius.circular(15),
+        ),
+        child: Padding(
+          padding: const EdgeInsets.only(
+            top: kToolbarHeight + 24,
+            left: 10,
+            right: 10,
+            bottom: 10,
+          ),
+          child: GridView.builder(
+            itemCount: widget.gridCount,
+            gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
+              crossAxisCount: crossAxisCount,
+              crossAxisSpacing: 12,
+              mainAxisSpacing: 12,
+            ),
+            itemBuilder: (context, index) {
+              return GestureDetector(
+                onTap: () => flipCard(index),
+                child: AnimatedContainer(
+                  duration: const Duration(milliseconds: 350),
+                  curve: Curves.easeInOut,
+                  decoration: BoxDecoration(
+                    color: matchedCards[index]
+                        ? Colors.green.shade600
+                        : cardColors[index % cardColors.length],
+                    borderRadius: BorderRadius.circular(18),
+                    boxShadow: [
+                      BoxShadow(
+                        color: const Color.fromRGBO(0, 0, 0, 0.18),
+                        blurRadius: 12,
+                        offset: const Offset(0, 8),
+                      ),
+                    ],
+                  ),
+                  child: Center(
+                    child: TweenAnimationBuilder<double>(
+                      tween: Tween<double>(
+                        begin: 0,
+                        end: cardFlipped[index] ? 1 : 0,
+                      ),
+                      duration: const Duration(milliseconds: 450),
+                      curve: Curves.easeInOut,
+                      builder: (context, value, child) {
+                        final isFlipped = value > 0.5;
+
+                        return Transform(
+                          transform: Matrix4.identity()
+                            ..setEntry(3, 2, 0.001)
+                            ..rotateY(value * pi),
+                          alignment: Alignment.center,
+                          child: Container(
+                            alignment: Alignment.center,
+                            child: Text(
+                              isFlipped ? cardValues[index] : '❓',
+                              style: const TextStyle(
+                                fontSize: 34,
+                                fontWeight: FontWeight.w700,
+                                color: Colors.white,
+                                shadows: [
+                                  Shadow(
+                                    color: Colors.black26,
+                                    blurRadius: 6,
+                                    offset: Offset(0, 2),
+                                  ),
+                                ],
+                              ),
+                            ),
+                          ),
+                        );
+                      },
+                    ),
+                  ),
                 ),
-                child: Center(
-  child: AnimatedSwitcher(
-    duration: const Duration(
-      milliseconds: 500,
-    ),
-    transitionBuilder:
-        (Widget child, Animation<double> animation) {
-      return RotationYTransition(
-        turns: animation,
-        child: child,
-      );
-    },
-    child: Text(
-      cardFlipped[index]
-          ? cardValues[index]
-          : '❓',
-      key: ValueKey(
-        cardFlipped[index],
-      ),
-      style: const TextStyle(
-        fontSize: 35,
-      ),
-    ),
-  ),
-),
-              ),
-            );
-          },
+              );
+            },
+          ),
         ),
       ),
     );
@@ -641,7 +1010,7 @@ class VictoryScreen extends StatelessWidget {
             fit: BoxFit.cover,
           ),
           Container(
-            color: Colors.black.withOpacity(0.6),
+            color: const Color.fromRGBO(0, 0, 0, 0.6),
           ),
           Center(
             child: Padding(
