@@ -94,9 +94,9 @@ class _WelcomeScreenState extends State<WelcomeScreen>
           boxShadow: [
             BoxShadow(
               color: Color.fromRGBO(
-                color.r,
-                color.g,
-                color.b,
+                color.r.toInt(),
+color.g.toInt(),
+color.b.toInt(),
                 0.35,
               ),
               blurRadius: blur,
@@ -335,6 +335,31 @@ class _WelcomeScreenState extends State<WelcomeScreen>
               );
             },
           ),
+
+Positioned(
+  left: -40,
+  top: 120,
+  child: Opacity(
+    opacity: 0.10,
+    child: Image.asset(
+      'assets/images/Batman.jpg',
+      height: 280,
+    ),
+  ),
+),
+
+Positioned(
+  right: -40,
+  top: 120,
+  child: Opacity(
+    opacity: 0.10,
+    child: Image.asset(
+      'assets/images/Ironman.jpg',
+      height: 280,
+    ),
+  ),
+),
+
           SafeArea(
             child: Center(
               child: SingleChildScrollView(
@@ -345,8 +370,8 @@ class _WelcomeScreenState extends State<WelcomeScreen>
                 child: Container(
                   padding: const EdgeInsets.all(24),
                   decoration: BoxDecoration(
-                    color: const Color.fromRGBO(255, 255, 255, 0.92),
-                    borderRadius: BorderRadius.circular(32),
+                    color: const Color.fromRGBO(255, 255, 255, 0.85),
+                   borderRadius: BorderRadius.circular(40),
                     border: Border.all(
                       color: const Color.fromRGBO(255, 255, 255, 0.85),
                       width: 1.4,
@@ -354,62 +379,136 @@ class _WelcomeScreenState extends State<WelcomeScreen>
                     boxShadow: [
                       BoxShadow(
                         color: const Color.fromRGBO(144, 202, 249, 0.35),
-                        blurRadius: 24,
-                        spreadRadius: 2,
+                        blurRadius: 35,
+spreadRadius: 5,
                       ),
                     ],
                   ),
                   child: Column(
                     mainAxisSize: MainAxisSize.min,
                     children: [
-                      const Text(
-                        '🧠 MindSparkle',
-                        textAlign: TextAlign.center,
-                        style: TextStyle(
-                          fontSize: 40,
-                          fontWeight: FontWeight.bold,
-                          letterSpacing: 1.1,
-                        ),
+                      ShaderMask(
+  shaderCallback: (bounds) {
+    return const LinearGradient(
+      colors: [
+        Color(0xFF00E5FF),
+        Color(0xFF7C4DFF),
+        Color(0xFF00B0FF),
+      ],
+    ).createShader(bounds);
+  },
+  child: Text(
+  '🧠 MINDSPARKLE',
+  textAlign: TextAlign.center,
+  style: const TextStyle(
+    fontSize: 46,
+    fontWeight: FontWeight.bold,
+    color: Colors.white,
+    letterSpacing: 2,
+    shadows: [
+      Shadow(
+        blurRadius: 20,
+        color: Color(0xFF00E5FF),
+      ),
+      Shadow(
+        blurRadius: 35,
+        color: Color(0xFF7C4DFF),
+      ),
+    ],
+  ),
+),
                       ),
                       const SizedBox(height: 12),
-                      Text(
-                        'A memory challenge for young minds and curious adults.',
-                        textAlign: TextAlign.center,
-                        style: TextStyle(
-                          fontSize: 18,
-                          color: Colors.blueGrey.shade700,
-                        ),
-                      ),
+                      const Text(
+  'Train Your Memory.\n'
+  'Challenge Your Mind.\n'
+  'Become a Legend.',
+  textAlign: TextAlign.center,
+  style: TextStyle(
+    fontSize: 20,
+    fontWeight: FontWeight.w600,
+    color: Color(0xFF37474F),
+    height: 1.6,
+  ),
+),
+const SizedBox(height: 15),
+
+Container(
+  padding: const EdgeInsets.all(12),
+  decoration: BoxDecoration(
+    shape: BoxShape.circle,
+    color: Colors.amber.withOpacity(0.15),
+  ),
+  child: const Icon(
+    Icons.emoji_events,
+    color: Colors.amber,
+    size: 60,
+  ),
+),
+
+const SizedBox(height: 15),
+
+Text(
+  '🏅 Adaptive Difficulty System',
+  style: TextStyle(
+    fontSize: 18,
+    fontWeight: FontWeight.bold,
+    color: Colors.blue,
+  ),
+),
+
+const SizedBox(height: 5),
+
+Text(
+  'Difficulty automatically adjusts based on your age.',
+  textAlign: TextAlign.center,
+  style: TextStyle(
+    fontSize: 14,
+    color: Colors.black54,
+  ),
+),
+
+const SizedBox(height: 20),
+
+const SizedBox(height: 15),
                       const SizedBox(height: 24),
                       TextField(
                         controller: nameController,
                         decoration: InputDecoration(
-                          hintText: 'Enter your name',
-                          filled: true,
-                          fillColor: Colors.white,
-                          border: OutlineInputBorder(
-                            borderRadius: BorderRadius.circular(18),
-                            borderSide: BorderSide(
-                              color: Colors.blue.shade100,
-                            ),
-                          ),
-                        ),
+  hintText: '👤 Hero Name',
+  filled: true,
+  fillColor: Colors.white,
+  prefixIcon: const Icon(
+    Icons.person,
+    color: Colors.blue,
+  ),
+  border: OutlineInputBorder(
+    borderRadius: BorderRadius.circular(25),
+    borderSide: BorderSide(
+      color: Colors.blue.shade100,
+    ),
+  ),
+),
                       ),
                       const SizedBox(height: 18),
                       TextField(
                         controller: ageController,
                         keyboardType: TextInputType.number,
                         decoration: InputDecoration(
-                          hintText: 'Enter your age',
-                          filled: true,
-                          fillColor: Colors.white,
-                          border: OutlineInputBorder(
-                            borderRadius: BorderRadius.circular(18),
-                            borderSide: BorderSide(
-                              color: Colors.blue.shade100,
-                            ),
-                          ),
-                        ),
+  hintText: '🎂 Hero Age',
+  filled: true,
+  fillColor: Colors.white,
+  prefixIcon: const Icon(
+    Icons.cake,
+    color: Colors.orange,
+  ),
+  border: OutlineInputBorder(
+    borderRadius: BorderRadius.circular(25),
+    borderSide: BorderSide(
+      color: Colors.blue.shade100,
+    ),
+  ),
+),
                       ),
                       const SizedBox(height: 16),
                       Text(
@@ -422,20 +521,26 @@ class _WelcomeScreenState extends State<WelcomeScreen>
                       const SizedBox(height: 16),
                       ElevatedButton(
                         onPressed: startGame,
-                        style: ElevatedButton.styleFrom(
-                          backgroundColor: Colors.blue.shade700,
-                          shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(18),
-                          ),
-                          padding: const EdgeInsets.symmetric(
-                            horizontal: 40,
-                            vertical: 18,
-                          ),
-                        ),
+                       style: ElevatedButton.styleFrom(
+  backgroundColor: const Color(0xFF2962FF),
+  elevation: 12,
+  shadowColor: Colors.blueAccent,
+  shape: RoundedRectangleBorder(
+    borderRadius: BorderRadius.circular(30),
+  ),
+  padding: const EdgeInsets.symmetric(
+    horizontal: 50,
+    vertical: 20,
+  ),
+),
                         child: const Text(
-                          'Start Game',
-                          style: TextStyle(fontSize: 20),
-                        ),
+  '⚡ BEGIN THE CHALLENGE ⚡',
+  style: TextStyle(
+    fontSize: 20,
+    fontWeight: FontWeight.bold,
+    letterSpacing: 1.2,
+  ),
+),
                       ),
                       const SizedBox(height: 14),
                       OutlinedButton(
@@ -461,7 +566,7 @@ class _WelcomeScreenState extends State<WelcomeScreen>
                           ),
                         ),
                         child: Text(
-                          '🏆 View Leaderboard',
+                          '🏆 Hall of Legends',
                           style: TextStyle(
                             color: Colors.blue.shade900,
                             fontSize: 16,
