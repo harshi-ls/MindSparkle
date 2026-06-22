@@ -3,10 +3,20 @@ import 'dart:math';
 
 import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'package:supabase_flutter/supabase_flutter.dart';
 
-void main() {
+Future<void> main() async {
+  WidgetsFlutterBinding.ensureInitialized();
+
+  await Supabase.initialize(
+    url: 'https://virvvmuppczvwlquhjiu.supabase.co',
+    anonKey: 'sb_publishable_DRmSrBRJwORkVBjRJjdAwQ_kqnPzcd0',
+  );
+
   runApp(const MindSparkleApp());
 }
+
+final supabase = Supabase.instance.client;
 
 class MindSparkleApp extends StatelessWidget {
   const MindSparkleApp({super.key});
@@ -821,6 +831,11 @@ print("Total cards: ${cardValues.length}");
 
   Future<void> checkWin() async {
     bool hasWon = matchedCards.every((matched) => matched);
+    print("Matched Cards:");
+print(matchedCards);
+print(
+  "Matched Count: ${matchedCards.where((m) => m).length}"
+);
 
     if (hasWon) {
       timer.cancel();
@@ -904,22 +919,19 @@ print("Total cards: ${cardValues.length}");
 }
 
 
-  Future<void> saveScore() async {
-    final prefs = await SharedPreferences.getInstance();
-
-    List<String> scores = prefs.getStringList('leaderboard') ?? [];
-
-    scores.add('${widget.playerName} - $score');
-
-    scores.sort((a, b) {
-      int scoreA = int.parse(a.split('-').last.trim());
-      int scoreB = int.parse(b.split('-').last.trim());
-
-      return scoreB.compareTo(scoreA);
+ Future<void> saveScore() async {
+  try {
+    await supabase.from('leaderboard').insert({
+      'player_name': widget.playerName,
+      'score': score,
+      'time_left': timeLeft,
     });
 
-    await prefs.setStringList('leaderboard', scores);
+    print('Score saved to Supabase!');
+  } catch (e) {
+    print('Supabase Error: $e');
   }
+}
 
   @override
   Widget build(BuildContext context) {
