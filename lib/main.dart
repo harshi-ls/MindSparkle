@@ -730,6 +730,8 @@ class _GameScreenState extends State<GameScreen> {
     cardValues = [...cardValues, ...cardValues];
     cardValues.shuffle();
 
+print(cardValues);
+print("Total cards: ${cardValues.length}");
     cardFlipped = List.generate(widget.gridCount, (index) => false);
     matchedCards = List.generate(widget.gridCount, (index) => false);
 
@@ -767,6 +769,9 @@ class _GameScreenState extends State<GameScreen> {
   }
 
   void flipCard(int index) async {
+    print(
+  "Clicked: $index | Selected: ${selectedCards.length}"
+);
     if (isBusy || cardFlipped[index] || matchedCards[index]) {
       return;
     }
@@ -783,14 +788,21 @@ class _GameScreenState extends State<GameScreen> {
       int second = selectedCards[1];
 
       if (cardValues[first] == cardValues[second]) {
-        setState(() {
-          matchedCards[first] = true;
-          matchedCards[second] = true;
-          score += 10;
-        });
+  setState(() {
+    matchedCards[first] = true;
+    matchedCards[second] = true;
+    score += 10;
+  });
 
-        checkWin();
-      } else {
+  print("MATCH: ${cardValues[first]}");
+  print("First index: $first");
+  print("Second index: $second");
+  print(
+    "Matched count: ${matchedCards.where((m) => m).length}",
+  );
+
+  checkWin();
+}else {
         await Future.delayed(const Duration(seconds: 1));
 
         if (!mounted) return;
